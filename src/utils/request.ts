@@ -5,6 +5,11 @@ export interface Result<T> {
   message: string,
   data: T
 }
+export interface Commoditie<T>{
+  id:number,
+  name: string,
+  data: T
+}
 
 export function Ok<T>(data: T) {
   return {

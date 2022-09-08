@@ -17,8 +17,19 @@ export class LoginService {
   constructor(@InjectRedis() private readonly redis: Redis,
   ) {}
 
-  getHello(): string {
-    return 'Hello World!';
+  async getHello(token: any) {
+    try {
+      let value = await this.redis.get(token);
+      if (value !== null) {
+        return Ok(token);
+      } else {
+        return FailErrorCode(AuthErrorCode.NO_USER);
+      }
+    } catch (e) {
+      let error_id = randomUUID();
+      this.logger.error(`[trace_id]${error_id}[msg]redis access fail[error]${e.message}`);
+      return FailSystemError(e);
+    }
   }
 
   async login(username: string, password: string, timeout: number): Promise<Result<string>> {
@@ -36,6 +47,41 @@ export class LoginService {
           return FailErrorCode(AuthErrorCode.PASS_FAULT);
         }
 
+      }
+    } catch (e) {
+      let error_id = randomUUID();
+      this.logger.error(`[trace_id]${error_id}[msg]redis access fail[error]${e.message}`);
+      return FailSystemError(e);
+    }
+  }
+
+  async logout(token: string): Promise<Result<string>> {
+    try {
+        let username = await this.redis.get(token);
+        if(username !== null){
+          await this.redis.del(username);
+          await this.redis.del(token);
+          return Ok("已经退出");
+        }else {
+          return Fail("已经退出");
+        }
+    } catch (e) {
+        let error_id = randomUUID();
+        this.logger.error(`[trace_id]${error_id}[msg]redis access fail[error]${e.message}`);
+        return FailSystemError(e);
+    }
+  }
+
+  async cancellation(token: string): Promise<Result<string>> {
+    try {
+      let username = await this.redis.get(token);
+      if(username !== null){
+        await this.redis.del(token);
+        await this.redis.del(username);
+        await this.redis.del("user:" + username)
+        return Ok("注销成功");
+      }else {
+        return Fail("未找到用户");
       }
     } catch (e) {
       let error_id = randomUUID();

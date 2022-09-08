@@ -40,7 +40,7 @@ export class EmailService {
     let mailOptions = {
       from: '"验证码" <822095092@qq.com>', // 发件人
       to: email, // 收件人
-      subject: '来自pixiv的验证码', // 主题
+      subject: '来自3D Library的验证码', // 主题
       text: '验证码：' + captcha.toString(),
       html: message,
     };
